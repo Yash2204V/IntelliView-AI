@@ -1,0 +1,5 @@
+.env
+node_modules/
+TEST_GUIDE.md
+/scripts
+.next/
