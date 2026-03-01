@@ -1,26 +1,30 @@
 "use client"
 
 import { useState } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
+import { Navigation } from "@/components/navigation"
+import { Sparkles, Briefcase, Building2, Code2, GraduationCap, ChevronRight, ArrowLeft, Loader2, Cpu, BarChart3, Palette, LineChart } from "lucide-react"
 
 const ROLES = [
-  { id: "software-engineer", name: "Software Engineer", icon: "💻" },
-  { id: "product-manager", name: "Product Manager", icon: "🎯" },
-  { id: "data-scientist", name: "Data Scientist", icon: "📊" },
-  { id: "ux-designer", name: "UX Designer", icon: "🎨" },
-  { id: "business-analyst", name: "Business Analyst", icon: "📈" },
+  { id: "software-engineer", name: "Software Engineer", icon: Code2, color: "text-blue-500", bg: "bg-blue-500/10" },
+  { id: "product-manager", name: "Product Manager", icon: Cpu, color: "text-purple-500", bg: "bg-purple-500/10" },
+  { id: "data-scientist", name: "Data Scientist", icon: BarChart3, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  { id: "ux-designer", name: "UX Designer", icon: Palette, color: "text-pink-500", bg: "bg-pink-500/10" },
+  { id: "business-analyst", name: "Business Analyst", icon: LineChart, color: "text-amber-500", bg: "bg-amber-500/10" },
+  { id: "more", name: "Other Role", icon: Briefcase, color: "text-slate-500", bg: "bg-slate-500/10" },
 ]
 
 const COMPANIES = [
-  { id: "google", name: "Google", logo: "🔍" },
-  { id: "amazon", name: "Amazon", logo: "📦" },
-  { id: "meta", name: "Meta", logo: "f" },
-  { id: "apple", name: "Apple", logo: "🍎" },
-  { id: "microsoft", name: "Microsoft", logo: "M" },
+  { id: "google", name: "Google", logo: "G", color: "text-blue-500" },
+  { id: "amazon", name: "Amazon", logo: "A", color: "text-orange-500" },
+  { id: "meta", name: "Meta", logo: "M", color: "text-blue-600" },
+  { id: "apple", name: "Apple", logo: "", color: "text-slate-900 dark:text-white" },
+  { id: "microsoft", name: "Microsoft", logo: "ms", color: "text-blue-400" },
+  { id: "more", name: "Start-up / Other", logo: "+", color: "text-slate-500" },
 ]
 
 export default function Onboarding() {
@@ -68,125 +72,176 @@ export default function Onboarding() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 p-4">
-      <div className="max-w-2xl mx-auto">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-          <div className="mb-12">
-            <h1 className="text-4xl font-bold mb-2">Let's Get Started</h1>
-            <p className="text-muted-foreground">
-              {step === 0
-                ? "Choose the role you're interviewing for"
-                : "Select a company and tell us your tech stack"}
-            </p>
+    <main className="min-h-screen bg-background relative selection:bg-primary/20 overflow-hidden">
+      {/* Background Decorative Blur */}
+      <div className="fixed inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-500/5 rounded-full blur-[120px]" />
+      </div>
+
+      <Navigation />
+
+      <div className="max-w-4xl mx-auto px-4 pt-32 pb-20">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
+        >
+          <div className="w-16 h-16 bg-gradient-to-tr from-primary to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-primary/20">
+            <GraduationCap className="w-8 h-8 text-white" />
           </div>
+          <h1 className="text-4xl font-extrabold tracking-tight mb-3">Prepare Your Path</h1>
+          <p className="text-muted-foreground font-medium max-w-lg mx-auto">
+            {step === 0
+              ? "Select your target role to begin the deep-dive interview calibration"
+              : "Tell us where you're aiming to land and your current arsenal of tools"}
+          </p>
+        </motion.div>
 
-          {error && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="mb-6 p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/30 text-sm"
-            >
-              {error}
-            </motion.div>
-          )}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-8 p-4 bg-destructive/10 text-destructive rounded-2xl border border-destructive/20 text-center font-medium shadow-lg"
+          >
+            {error}
+          </motion.div>
+        )}
 
+        <AnimatePresence mode="wait">
           {step === 0 ? (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-              <div className="grid sm:grid-cols-2 gap-4 mb-8">
-                {ROLES.map((role) => (
-                  <motion.button
-                    key={role.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      setSelectedRole(role.id)
-                      setStep(1)
-                    }}
-                  >
-                    <Card
-                      className={`p-6 cursor-pointer transition-all ${
-                        selectedRole === role.id ? "border-primary bg-primary/5" : "hover:border-primary/50"
-                      }`}
-                    >
-                      <div className="text-3xl mb-3">{role.icon}</div>
-                      <p className="font-medium">{role.name}</p>
-                    </Card>
-                  </motion.button>
-                ))}
-              </div>
+            <motion.div
+              key="step0"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.4 }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {ROLES.map((role) => (
+                <motion.button
+                  key={role.id}
+                  whileHover={{ y: -5 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setSelectedRole(role.id)
+                    setStep(1)
+                  }}
+                >
+                  <Card className={`p-8 h-full bg-white/5 border-white/10 backdrop-blur-md hover:bg-white/10 transition-all cursor-pointer border relative overflow-hidden group text-left ${selectedRole === role.id ? 'ring-2 ring-primary ring-offset-4 ring-offset-background' : ''}`}>
+                    <div className={`w-12 h-12 ${role.bg} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                      <role.icon className={`w-6 h-6 ${role.color}`} />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">{role.name}</h3>
+                    <p className="text-xs text-muted-foreground font-medium italic opacity-70">Customized roadmap available</p>
+                    <ChevronRight className="absolute bottom-6 right-6 w-5 h-5 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-primary" />
+                  </Card>
+                </motion.button>
+              ))}
             </motion.div>
           ) : (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-              <div className="grid sm:grid-cols-2 gap-4 mb-8">
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.4 }}
+              className="space-y-8"
+            >
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {COMPANIES.map((company) => (
-                  <motion.button
+                  <button
                     key={company.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedCompany(company.id)}
-                  >
-                    <Card
-                      className={`p-6 cursor-pointer transition-all ${
-                        selectedCompany === company.id ? "border-primary bg-primary/5" : "hover:border-primary/50"
+                    className={`p-6 rounded-2xl border transition-all text-center relative overflow-hidden group ${selectedCompany === company.id
+                        ? 'bg-primary border-primary text-white shadow-xl shadow-primary/20'
+                        : 'bg-white/5 border-white/10 hover:bg-white/10'
                       }`}
-                    >
-                      <div className="text-3xl mb-3">{company.logo}</div>
-                      <p className="font-medium">{company.name}</p>
-                    </Card>
-                  </motion.button>
+                  >
+                    <div className={`text-2xl font-black mb-2 ${selectedCompany === company.id ? 'text-white' : company.color}`}>
+                      {company.logo}
+                    </div>
+                    <p className="font-bold text-sm tracking-tight">{company.name}</p>
+                    {selectedCompany === company.id && (
+                      <div className="absolute top-2 right-2">
+                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                      </div>
+                    )}
+                  </button>
                 ))}
               </div>
 
-              <div className="space-y-4 mb-8">
+              <Card className="p-8 bg-white/5 border-white/10 backdrop-blur-md space-y-8">
                 <div>
-                  <p className="text-sm font-medium mb-2">Your primary tech stack</p>
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4 block italic flex items-center gap-2">
+                    <Building2 className="w-3 h-3" />
+                    Primary Stack / Skills
+                  </label>
                   <Input
-                    placeholder="e.g. React, Node.js, MongoDB"
+                    placeholder="e.g. React, Node.js, System Design..."
                     value={techStack}
                     onChange={(e) => setTechStack(e.target.value)}
+                    className="h-14 bg-white/5 border-white/10 focus:border-primary/50 text-lg font-medium px-6 rounded-xl"
                   />
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium mb-2">Experience level</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4 block italic flex items-center gap-2">
+                    <BarChart3 className="w-3 h-3" />
+                    Professional Altitude
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {["fresher", "junior", "mid", "senior"].map((level) => (
                       <button
                         key={level}
                         type="button"
                         onClick={() => setExperienceLevel(level)}
-                        className={`text-sm px-3 py-2 rounded-md border transition-all capitalize ${
-                          experienceLevel === level
-                            ? "border-primary bg-primary/5 text-primary"
-                            : "border-border hover:border-primary/40"
-                        }`}
+                        className={`text-sm px-6 py-4 rounded-xl border-2 font-bold transition-all capitalize ${experienceLevel === level
+                            ? "border-primary bg-primary text-white shadow-lg shadow-primary/20"
+                            : "border-white/5 bg-white/5 hover:border-white/10 text-muted-foreground"
+                          }`}
                       >
-                        {level === "fresher" ? "Intern / Fresher" : level}
+                        {level === "fresher" ? "Intern" : level}
                       </button>
                     ))}
                   </div>
                 </div>
-              </div>
+              </Card>
 
               <div className="flex gap-4">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => {
                     setStep(0)
                     setError("")
                   }}
-                  className="flex-1"
+                  className="h-14 rounded-2xl flex-1 font-bold gap-2 hover:bg-white/5"
                   disabled={loading}
                 >
-                  Back
+                  <ArrowLeft className="w-4 h-4" />
+                  Review Role
                 </Button>
-                <Button onClick={handleStart} disabled={loading || !selectedCompany} className="flex-1">
-                  {loading ? "Starting..." : "Start Interview"}
+                <Button
+                  onClick={handleStart}
+                  disabled={loading || !selectedCompany}
+                  className="h-14 flex-1 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-lg gap-2 shadow-2xl shadow-primary/20 group"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Calibrating...
+                    </>
+                  ) : (
+                    <>
+                      Start Simulation
+                      <Sparkles className="w-5 h-5 group-hover:scale-125 transition-transform" />
+                    </>
+                  )}
                 </Button>
               </div>
             </motion.div>
           )}
-        </motion.div>
+        </AnimatePresence>
       </div>
     </main>
   )

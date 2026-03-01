@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
+import { Sparkles, Zap, Brain, Target, Activity, History } from "lucide-react"
 
 interface LiveFeedbackProps {
   answers: string[]
@@ -16,7 +17,6 @@ export function LiveFeedback({ answers, currentQuestion }: LiveFeedbackProps) {
     const lastAnswer = answers[answers.length - 1]
     const wordCount = lastAnswer.split(" ").length
     const hasQuestions = lastAnswer.includes("?")
-    const hasEmojis = /\p{Emoji}/u.test(lastAnswer)
 
     return {
       clarity: Math.min(100, Math.max(40, (wordCount / 150) * 100)),
@@ -29,54 +29,74 @@ export function LiveFeedback({ answers, currentQuestion }: LiveFeedbackProps) {
   const metrics = calculateMetrics()
 
   const feedbackTags = [
-    { label: "Clarity", score: metrics.clarity, icon: "📝" },
-    { label: "Confidence", score: metrics.confidence, icon: "💪" },
-    { label: "Pace", score: metrics.pace, icon: "⚡" },
-    { label: "Engagement", score: metrics.engagement, icon: "🎯" },
+    { label: "Clarity", score: metrics.clarity, icon: Target, color: "text-blue-500", bg: "bg-blue-500/10" },
+    { label: "Confidence", score: metrics.confidence, icon: Brain, color: "text-purple-500", bg: "bg-purple-500/10" },
+    { label: "Pace", score: metrics.pace, icon: Zap, color: "text-amber-500", bg: "bg-amber-500/10" },
+    { label: "Vibe", score: metrics.engagement, icon: Activity, color: "text-emerald-500", bg: "bg-emerald-500/10" },
   ]
 
   return (
-    <Card className="p-6 sticky top-20 space-y-4">
-      <h3 className="font-semibold">Live Feedback</h3>
-
-      <div className="space-y-3">
-        {feedbackTags.map((tag, idx) => (
-          <motion.div
-            key={tag.label}
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: idx * 0.1 }}
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <span>{tag.icon}</span>
-              <span className="text-sm font-medium">{tag.label}</span>
-              <span className="text-xs text-muted-foreground">{Math.round(tag.score)}%</span>
-            </div>
-            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${tag.score}%` }}
-                transition={{ duration: 0.8, delay: 0.1 }}
-              />
-            </div>
-          </motion.div>
-        ))}
+    <Card className="p-6 sticky top-24 bg-white/5 border-white/10 backdrop-blur-xl shadow-2xl space-y-8 overflow-hidden">
+      <div className="absolute top-0 right-0 p-4">
+        <Sparkles className="w-4 h-4 text-primary opacity-20" />
       </div>
 
-      <div className="border-t border-border pt-4">
-        <h4 className="font-medium text-sm mb-3">Answer History</h4>
-        <div className="space-y-2 max-h-64 overflow-y-auto">
-          {answers.map((answer, idx) => (
+      <div>
+        <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-6 flex items-center gap-2 italic">
+          <Activity className="w-3 h-3 text-primary" />
+          Live Telemetry
+        </h3>
+
+        <div className="space-y-6">
+          {feedbackTags.map((tag, idx) => (
             <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-2 bg-muted/50 rounded text-xs text-muted-foreground line-clamp-2"
+              key={tag.label}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: idx * 0.1 }}
             >
-              Q{idx + 1}: {answer.substring(0, 60)}...
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 ${tag.bg} rounded-lg flex items-center justify-center`}>
+                    <tag.icon className={`w-4 h-4 ${tag.color}`} />
+                  </div>
+                  <span className="text-sm font-bold tracking-tight">{tag.label}</span>
+                </div>
+                <span className="text-[10px] font-black font-mono text-muted-foreground">{Math.round(tag.score)}%</span>
+              </div>
+              <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-primary to-blue-500 shadow-[0_0_8px_rgba(var(--primary),0.4)]"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${tag.score}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                />
+              </div>
             </motion.div>
           ))}
+        </div>
+      </div>
+
+      <div className="pt-6 border-t border-white/10">
+        <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2 italic">
+          <History className="w-3 h-3" />
+          Transmission History
+        </h4>
+        <div className="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+          {answers.length === 0 ? (
+            <p className="text-[10px] text-muted-foreground italic opacity-50 text-center py-4">Waiting for first response...</p>
+          ) : (
+            answers.map((answer, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="p-3 bg-white/5 border border-white/5 rounded-xl text-[10px] font-medium leading-relaxed italic text-muted-foreground line-clamp-3 hover:bg-white/10 transition-colors"
+              >
+                <span className="text-primary font-bold not-italic mr-1">T-{idx + 1}:</span> {answer}
+              </motion.div>
+            ))
+          )}
         </div>
       </div>
     </Card>
