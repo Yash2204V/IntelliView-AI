@@ -3,8 +3,9 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { BarChart, Bar, LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts"
 import { Sparkles, TrendingUp, Award, Clock, MessageSquare, ChevronRight, CheckCircle2 } from "lucide-react"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
 interface ResultsDashboardProps {
   results: any
@@ -58,14 +59,11 @@ export default function ResultsDashboard({ results }: ResultsDashboardProps) {
       {/* Celebration Banner */}
       <motion.div
         variants={itemVariants}
-        className="mb-16 text-center"
+        className="mb-16 text-center mt-16"
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", delay: 0.3 }}
       >
-        <div className="w-20 h-20 bg-gradient-to-tr from-primary to-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-primary/20">
-          <Sparkles className="w-10 h-10 text-white" />
-        </div>
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">Interview Analysis</h1>
         <p className="text-xl text-muted-foreground font-medium">Detailed breakdown of your performance metrics</p>
       </motion.div>
@@ -141,29 +139,123 @@ export default function ResultsDashboard({ results }: ResultsDashboardProps) {
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="p-8 bg-white/5 border-white/10 backdrop-blur-md">
-            <h3 className="text-xl font-bold mb-8 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-blue-500" />
-              Performance Curve
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={progressionData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="question" stroke="currentColor" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis hide />
-                <Tooltip
-                  contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '12px', backdropFilter: 'blur(10px)' }}
+          <Card className="p-8 bg-white/5 border-white/10 backdrop-blur-md rounded-3xl overflow-hidden relative">
+            <div className="absolute top-0 left-0 w-full h-1 bg-blue-500/20" />
+            <div className="flex justify-between items-center mb-10">
+              <div>
+                <h3 className="text-xl font-bold flex items-center gap-2 mb-1">
+                  <TrendingUp className="w-5 h-5 text-blue-500" />
+                  Performance Curve
+                </h3>
+                <p className="text-sm text-muted-foreground">Progression across interview sequence</p>
+              </div>
+              <div className="flex items-center gap-3 bg-muted px-4 py-2 rounded-2xl border shadow-sm">
+                <div className="w-2.5 h-2.5 rounded-full bg-foreground animate-pulse" />
+                <span className="text-xs font-bold uppercase tracking-widest text-foreground">Score %</span>
+              </div>
+            </div>
+
+            <ChartContainer
+              config={{
+                score: {
+                  label: "Proficiency",
+                  color: "currentColor",
+                },
+              }}
+              className="h-[300px] w-full"
+            >
+              <AreaChart
+                data={progressionData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+              >
+                <defs>
+                  <linearGradient id="performanceGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="currentColor" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="currentColor" stopOpacity={0.02} />
+                  </linearGradient>
+                  <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                  </filter>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="currentColor"
+                  className="opacity-[0.05]"
+                  vertical={false}
                 />
-                <Line
+                <XAxis
+                  dataKey="question"
+                  stroke="currentColor"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  className="fill-muted-foreground font-semibold"
+                  label={{
+                    value: 'QUESTIONS',
+                    position: 'insideBottomRight',
+                    offset: -10,
+                    fill: 'currentColor',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    className: 'opacity-100 tracking-widest'
+                  }}
+                />
+                <YAxis
+                  domain={[0, 100]}
+                  stroke="currentColor"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(val) => `${val}%`}
+                  className="fill-muted-foreground font-medium"
+                  label={{
+                    value: 'PERFORMANCE SCORE',
+                    angle: -90,
+                    position: 'insideLeft',
+                    offset: -10,
+                    fill: 'currentColor',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    className: 'opacity-100 tracking-widest'
+                  }}
+                />
+                <ChartTooltip
+                  cursor={{ stroke: "var(--color-score)", strokeWidth: 1, strokeDasharray: "4 4" }}
+                  content={<ChartTooltipContent indicator="dot" />}
+                />
+                <ReferenceLine
+                  y={performanceScore}
+                  stroke="currentColor"
+                  strokeDasharray="6 4"
+                  className="opacity-20"
+                  label={{
+                    value: 'AVG.',
+                    position: 'right',
+                    fill: 'currentColor',
+                    fontSize: 9,
+                    fontWeight: 800,
+                    className: 'opacity-100 tracking-tighter'
+                  }}
+                />
+                <Area
                   type="monotone"
                   dataKey="score"
-                  stroke="var(--color-primary)"
+                  stroke="var(--color-score)"
                   strokeWidth={4}
-                  dot={{ r: 6, fill: "var(--color-primary)", strokeWidth: 4, stroke: "#000" }}
-                  activeDot={{ r: 8, strokeWidth: 0 }}
+                  filter="url(#glow)"
+                  fillOpacity={1}
+                  fill="url(#performanceGradient)"
+                  animationDuration={2000}
+                  activeDot={{
+                    r: 6,
+                    strokeWidth: 2,
+                    stroke: "white",
+                    fill: "var(--color-score)",
+                  }}
                 />
-              </LineChart>
-            </ResponsiveContainer>
+              </AreaChart>
+            </ChartContainer>
           </Card>
         </motion.div>
       </div>

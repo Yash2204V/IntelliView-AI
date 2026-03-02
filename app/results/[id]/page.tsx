@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import ResultsDashboard from "@/components/results-dashboard"
 import LoadingSpinner from "@/components/loading-spinner"
+import { Navigation } from "@/components/navigation"
 
 export default function ResultsPage() {
   const params = useParams()
@@ -37,7 +38,8 @@ export default function ResultsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+    <main className="min-h-screen bg-linear-to-br from-background via-background to-accent/5">
+      <Navigation />
       {results && (
         <>
           <ResultsDashboard results={results} />

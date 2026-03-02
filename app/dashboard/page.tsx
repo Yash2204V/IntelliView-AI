@@ -13,7 +13,7 @@ interface Interview {
   role: string
   company: string
   score: number
-  createdAt: string
+  startedAt: string
   status: string
 }
 
@@ -158,11 +158,11 @@ export default function Dashboard() {
                               {interview.score}
                             </div>
                             <div>
-                              <p className="font-bold text-lg leading-tight group-hover:text-primary transition-colors">
+                              <p className="font-bold text-lg leading-tight group-hover:text-primary transition-colors capitalize">
                                 {interview.role}
                               </p>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {interview.company} • {new Date(interview.createdAt).toLocaleDateString()}
+                              <p className="text-sm text-muted-foreground mt-1 uppercase">
+                                {interview.company} • {new Date(interview.startedAt).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
                               </p>
                             </div>
                           </div>
@@ -187,7 +187,7 @@ export default function Dashboard() {
             transition={{ delay: 0.5 }}
             className="space-y-6"
           >
-            <Card className="p-6 bg-gradient-to-br from-primary/20 to-blue-600/10 border-primary/20 relative overflow-hidden">
+            <Card className="p-6 bg-linear-to-br from-primary/20 to-blue-600/10 border-primary/20 relative overflow-hidden">
               <div className="relative z-10">
                 <h3 className="font-bold text-xl mb-3">AI Coach Pro</h3>
                 <p className="text-sm text-foreground/80 leading-relaxed mb-6">

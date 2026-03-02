@@ -147,11 +147,11 @@ Evaluate the candidate on these 4 metrics, each from 0 to 100:
 - engagement: how engaged and relevant the answers are to each question
 
 Scoring guidelines:
-- Empty, totally off-topic, or nonsense answers can be below 40.
+- Empty, totally off-topic, or nonsense answers can be below 20.
 - If the candidate mentions at least some correct key concepts but is incomplete
-  or a bit nervous, keep scores mostly in the 50-75 range.
+  or a bit nervous, keep scores mostly in the 50-80 range.
 - Only very strong, detailed, and accurate answers across all questions should
-  be above 80.
+  be above 90.
 
 Respond ONLY with a JSON object like this and nothing else:
 {"clarity": 0-100, "confidence": 0-100, "pace": 0-100, "engagement": 0-100}`
@@ -221,8 +221,8 @@ For each question-answer pair, assign a single score from 0 to 100
 based on how well the candidate answered that particular question.
 
 Scoring guidelines per question:
-- 0-39: very weak or off-topic answer
-- 40-59: partially correct but missing key ideas
+- 0-20: very weak or off-topic answer
+- 20-59: partially correct but missing key ideas
 - 60-79: generally good answer with some minor gaps
 - 80-100: strong, detailed, and accurate answer
 

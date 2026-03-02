@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Sparkles, LogOut, Loader2 } from "lucide-react"
+import Image from "next/image"
 
 export function Navigation() {
   const router = useRouter()
@@ -24,13 +25,11 @@ export function Navigation() {
 
   return (
     <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-background/60 backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center mt-2">
         <Link href="/dashboard" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 bg-gradient-to-tr from-primary to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent italic">
-            IntelliView
+          <Image src="/logo.jpeg" alt="Logo" width={50} height={50} className="rounded-md bg-white" />
+          <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            IntelliView AI
           </span>
         </Link>
         <div className="flex items-center gap-4">

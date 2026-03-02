@@ -192,7 +192,7 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
       <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-background/60 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-tr from-primary to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+            <div className="w-10 h-10 bg-linear-to-tr from-primary to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -210,7 +210,7 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${((questionIndex + 1) / 5) * 100}%` }}
-                    className="h-full bg-gradient-to-r from-primary to-blue-500 shadow-[0_0_10px_rgba(var(--primary),0.5)]"
+                    className="h-full bg-linear-to-r from-primary to-blue-500 shadow-[0_0_10px_rgba(var(--primary),0.5)]"
                   />
                 </div>
               </div>
@@ -256,7 +256,7 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
                   </div>
 
                   <motion.div
-                    className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-primary to-blue-600 mx-auto mb-8 flex items-center justify-center relative shadow-2xl shadow-primary/30"
+                    className="w-24 h-24 rounded-3xl bg-linear-to-tr from-primary to-blue-600 mx-auto mb-8 flex items-center justify-center relative shadow-2xl shadow-primary/30"
                     animate={isAiSpeaking ? {
                       scale: [1, 1.05, 1],
                       rotate: [0, 1, -1, 0],
@@ -266,7 +266,7 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
                     <Mic className="w-10 h-10 text-white" />
                     {isAiSpeaking && (
                       <motion.div
-                        className="absolute inset-[-10px] border-2 border-primary/30 rounded-[2.5rem]"
+                        className="absolute -inset-2.5 border-2 border-primary/30 rounded-[2.5rem]"
                         animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
                         transition={{ duration: 2, repeat: Infinity }}
                       />
@@ -281,7 +281,7 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
                         initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.98 }}
-                        className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight bg-gradient-to-br from-foreground to-foreground/80 bg-clip-text text-transparent italic"
+                        className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight bg-linear-to-br from-foreground to-foreground/80 bg-clip-text text-transparent italic"
                       >
                         "{currentQuestion}"
                       </motion.p>
@@ -298,9 +298,9 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
                 className="space-y-6"
               >
                 <div className="flex items-center gap-4 px-2">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                  <div className="h-px flex-1 bg-linear-to-r from-transparent via-white/10 to-transparent" />
                   <span className="text-[10px] uppercase tracking-widest font-black text-muted-foreground italic">Input Interface</span>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                  <div className="h-px flex-1 bg-linear-to-r from-transparent via-white/10 to-transparent" />
                 </div>
 
                 <WaveformVisualizer isActive={!isAiSpeaking} />
@@ -362,7 +362,7 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
         {/* Exit Modal - Enhanced Blur */}
         <AnimatePresence>
           {showExitConfirm && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
