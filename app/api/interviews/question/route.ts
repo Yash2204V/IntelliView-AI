@@ -32,13 +32,16 @@ export async function POST(req: NextRequest) {
       techStack,
       experienceLevel,
       questionIndex,
-      previousAnswers,
+      previousQuestions = [],
+      previousAnswers = [],
     } = await req.json()
 
+    // Pass everything directly. Index logic should be consistent between FE and BE.
     const question = await generateInterviewQuestion(
       role,
       company,
-      questionIndex + 1,
+      questionIndex, // The Component will decide which index we are on
+      previousQuestions,
       previousAnswers,
       techStack,
       experienceLevel,

@@ -14,6 +14,7 @@ interface Interview {
   company: string
   score: number
   startedAt: string
+  completedAt: string
   status: string
 }
 
@@ -49,6 +50,9 @@ export default function Dashboard() {
   const avgScore =
     interviews.length > 0 ? Math.round(interviews.reduce((sum, i) => sum + i.score, 0) / interviews.length) : 0
 
+  const practiceTime = 
+    Math.round(interviews.reduce((sum, i) => sum + (new Date(i.completedAt).getTime() - new Date(i.startedAt).getTime()), 0) / 60000)
+
   return (
     <main className="min-h-screen bg-background relative overflow-hidden">
       {/* Decorative Background */}
@@ -82,12 +86,11 @@ export default function Dashboard() {
         </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12">
           {[
             { label: "Interviews", value: interviews.length, icon: History, color: "text-blue-500", bg: "bg-blue-500/10" },
             { label: "Avg Score", value: `${avgScore}%`, icon: Star, color: "text-amber-500", bg: "bg-amber-500/10" },
-            { label: "Daily Streak", value: "3 Days", icon: Flame, color: "text-orange-500", bg: "bg-orange-500/10" },
-            { label: "Practice Time", value: `${interviews.length * 15}m`, icon: Clock, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+            { label: "Practice Time", value: `${practiceTime}m`, icon: Clock, color: "text-emerald-500", bg: "bg-emerald-500/10" },
           ].map((stat, idx) => (
             <motion.div
               key={idx}
@@ -187,19 +190,6 @@ export default function Dashboard() {
             transition={{ delay: 0.5 }}
             className="space-y-6"
           >
-            <Card className="p-6 bg-linear-to-br from-primary/20 to-blue-600/10 border-primary/20 relative overflow-hidden">
-              <div className="relative z-10">
-                <h3 className="font-bold text-xl mb-3">AI Coach Pro</h3>
-                <p className="text-sm text-foreground/80 leading-relaxed mb-6">
-                  You're in the top 15% of candidates this week. Focus on improving your "Confidence Score" in the next session.
-                </p>
-                <Button className="w-full bg-white text-primary hover:bg-white/90 font-bold rounded-xl h-12">
-                  View Analytics
-                </Button>
-              </div>
-              <div className="absolute top-[-20%] right-[-20%] w-32 h-32 bg-white/10 rounded-full blur-2xl" />
-            </Card>
-
             <Card className="p-6 bg-white/5 border-white/10">
               <h3 className="font-bold mb-4 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-500" />

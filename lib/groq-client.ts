@@ -15,16 +15,12 @@ export async function generateInterviewQuestion(
   role: string,
   company: string,
   questionIndex: number,
+  previousQuestions: string[] = [],
   previousAnswers: string[] = [],
   techStack?: string,
   experienceLevel: string = "fresher",
 ) {
   const groq = getGroqClient()
-
-  const context =
-    previousAnswers.length > 0
-      ? `Previous answers from the candidate:\n${previousAnswers.map((a, i) => `Q${i + 1}: ${a}`).join("\n\n")}\n\n`
-      : ""
 
   const levelDescription =
     experienceLevel === "senior"
@@ -35,26 +31,33 @@ export async function generateInterviewQuestion(
           ? "a junior"
           : "an intern / fresher"
 
-  const stackLine = techStack && techStack.trim().length > 0 ? `The candidate's primary tech stack is: ${techStack}.` : ""
+  const context = previousQuestions.length > 0
+    ? `You have already asked these questions: ${previousQuestions.join(" | ")}. 
+Candidate's previous answers: ${previousAnswers.join(" | ")}. 
+DO NOT repeat these topics—move on to a different technical area.`
+    : ""
 
-  const prompt = `You are conducting a friendly mock interview for ${levelDescription} ${role} candidates at ${company}.
-${stackLine}
+  const prompt = `You are conducting a professional and friendly mock interview for ${levelDescription} ${role} candidates at ${company}.
+${techStack ? `The candidate's primary tech stack is: ${techStack}.` : ""}
 ${context}
-Generate a single, simple interview question for question ${questionIndex}.
-The question MUST:
-- Focus mainly on the candidate's primary tech stack and day-to-day work
-- Be suitable for interns / freshers (avoid trick questions and deep system design)
-- Use very clear, beginner-friendly language
-- Test core fundamentals or basic practical skills
 
-For early questions (1-2), ask very basic, confidence-building questions.
-For later questions (3-5), you can go slightly deeper but still keep it approachable.
+Generate exactly ONE interview question for Question ${questionIndex} of the session.
 
-Respond with ONLY the question text, nothing else.`
+CONSTRAINTS BASED ON LEVEL:
+- If Senior: Focus on architecture, scalability, trade-offs, system design, and maintainability related to ${techStack || role}.
+- If Mid/Junior: Focus on implementation details, common APIs, practical troubleshooting, and best practices.
+- If Fresher: Focus on theoretical fundamentals, core data structures/logic, and basic conceptual understanding.
+
+GENERAL RULES:
+- Focus heavily on ${techStack || role} and day-to-day practical work.
+- Scales in difficulty: Q1-2 are foundational; Q3-5 are more scenario-based or complex.
+- DO NOT repeat topics covered in the history.
+- Respond with ONLY the question text, no conversational filler or quotes.`
 
   const completion = await groq.chat.completions.create({
-	model: "llama-3.3-70b-versatile",
+    model: "llama-3.3-70b-versatile",
     max_tokens: 200,
+    temperature: 0.8,
     messages: [
       {
         role: "user",
@@ -85,15 +88,15 @@ ${stackLine}
 QUESTION: ${question}
 ANSWER: ${answer}
 
-Provide brief feedback (2-3 sentences) on:
-1. How well the answer covers the basics for this level
-2. Clarity and communication
-3. One very practical suggestion for improvement
+Provide refined, professional coaching feedback (EXACTLY 2 concise sentences) on:
+1. Technical Precision: Identify one specific technical strength or a missed key concept.
+2. Tactical Improvement: Give one high-impact, actionable tip for the next response.
 
-Be encouraging and constructive, but also honest if the answer is weak.`
+The feedback must be sophisticated yet direct. Avoid generic praise like "Good job."
+Example: "Excellent mention of virtual DOM reconciliation. Next, try to articulate how 'key' props optimize this process specifically."`
 
   const completion = await groq.chat.completions.create({
-	model: "llama-3.3-70b-versatile",
+    model: "llama-3.3-70b-versatile",
     max_tokens: 300,
     messages: [
       {
@@ -116,12 +119,13 @@ export async function evaluateInterview(
 ) {
   const groq = getGroqClient()
 
-  if (!questions || !answers || answers.length === 0) {
+  // STRICT COMPLETION RULE: If the candidate leaves in the middle (less than 5 answers), zero points.
+  if (!questions || !answers || answers.length < 5) {
     return {
-      clarity: 60,
-      confidence: 60,
-      pace: 60,
-      engagement: 60,
+      clarity: 0,
+      confidence: 0,
+      pace: 0,
+      engagement: 0,
     }
   }
 
@@ -157,7 +161,7 @@ Respond ONLY with a JSON object like this and nothing else:
 {"clarity": 0-100, "confidence": 0-100, "pace": 0-100, "engagement": 0-100}`
 
   const completion = await groq.chat.completions.create({
-	model: "llama-3.3-70b-versatile",
+    model: "llama-3.3-70b-versatile",
     max_tokens: 300,
     messages: [
       {
@@ -202,8 +206,9 @@ export async function evaluatePerQuestionScores(
 ) {
   const groq = getGroqClient()
 
-  if (!questions || !answers || answers.length === 0) {
-    return [] as number[]
+  // STRICT COMPLETION RULE: If the candidate leaves in the middle (less than 5 answers), zero points.
+  if (!questions || !answers || answers.length < 5) {
+    return questions.map(() => 0)
   }
 
   const pairs = questions.slice(0, answers.length).map((q, i) => `Q${i + 1}: ${q}\nA${i + 1}: ${answers[i] || ""}`)
@@ -233,7 +238,7 @@ Respond ONLY with a JSON object like this and nothing else:
 {"scores": [s1, s2, ...]} where each si is between 0 and 100.`
 
   const completion = await groq.chat.completions.create({
-	model: "llama-3.3-70b-versatile",
+    model: "llama-3.3-70b-versatile",
     max_tokens: 300,
     messages: [
       {

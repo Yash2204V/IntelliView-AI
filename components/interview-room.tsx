@@ -16,21 +16,25 @@ interface InterviewRoomProps {
 
 export default function InterviewRoom({ interview }: InterviewRoomProps) {
   const router = useRouter()
-  const [currentQuestion, setCurrentQuestion] = useState("")
+  const [currentQuestion, setCurrentQuestion] = useState(interview.questions?.[0] || "");
   const [questionIndex, setQuestionIndex] = useState(0)
-  const [answers, setAnswers] = useState<string[]>([])
-  const [questions, setQuestions] = useState<string[]>([])
-  const [feedbackList, setFeedbackList] = useState<string[]>([])
+  const [answers, setAnswers] = useState<string[]>(interview.answers || [])
+  const [questions, setQuestions] = useState<string[]>(interview.questions || [])
+  const [feedbackList, setFeedbackList] = useState<string[]>(interview.feedback || [])
   const [isAiSpeaking, setIsAiSpeaking] = useState(false)
   const [feedback, setFeedback] = useState("")
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!currentQuestion)
   const [error, setError] = useState("")
   const [showExitConfirm, setShowExitConfirm] = useState(false)
   const synth = useRef<SpeechSynthesis | null>(null)
 
   useEffect(() => {
     synth.current = window.speechSynthesis
-    fetchFirstQuestion()
+    if (currentQuestion) {
+      speakQuestion(currentQuestion)
+    } else {
+      fetchFirstQuestion()
+    }
   }, [])
 
   const fetchFirstQuestion = async () => {
@@ -82,37 +86,35 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
   }
 
   const handleSubmitAnswer = async (answer: string) => {
-    if (!answer.trim()) return
+    if (!answer.trim() || loading) return
 
-    const newAnswers = [...answers, answer]
-    setAnswers(newAnswers)
+    setLoading(true)
+    setError("")
 
     try {
-      // Get feedback
-      const feedbackRes = await fetch("/api/interviews/feedback", {
+      const qIndexToUpdate = questionIndex
+      const qBeingAnswered = currentQuestion
+      const newAnswers = [...answers, answer]
+      setAnswers(newAnswers)
+
+      // 1. Parallel Execution: Fire both feedback and next question at once
+      const feedbackPromise = fetch("/api/interviews/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          question: currentQuestion,
+          question: qBeingAnswered,
           answer,
           role: interview.role,
           techStack: interview.techStack,
           experienceLevel: interview.experienceLevel,
         }),
-      })
+      }).then(res => res.ok ? res.json() : null)
 
-      if (feedbackRes.ok) {
-        const { feedback: feedbackText } = await feedbackRes.json()
-        setFeedback(feedbackText)
-        setFeedbackList((prev) => [...prev, feedbackText])
-      }
-
-      // Wait 2 seconds then get next question
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      let nextQuestionPromise: Promise<any> = Promise.resolve(null)
 
       if (questionIndex < 4) {
-        const nextRes = await fetch("/api/interviews/question", {
+        nextQuestionPromise = fetch("/api/interviews/question", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -123,22 +125,43 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
             techStack: interview.techStack,
             experienceLevel: interview.experienceLevel,
             questionIndex: questionIndex + 1,
+            previousQuestions: questions,
             previousAnswers: newAnswers,
           }),
-        })
+        }).then(res => res.ok ? res.json() : null)
+      }
 
-        if (nextRes.ok) {
-          const { question } = await nextRes.json()
-          setCurrentQuestion(question)
-          setQuestionIndex(questionIndex + 1)
-          setQuestions((prev) => [...prev, question])
-          // Keep previous feedback visible until the next answer is given
-          speakQuestion(question)
+      // 2. Wait for results. We only NEED the question to move on.
+      const [feedbackData, nextQuestionData] = await Promise.all([
+        feedbackPromise,
+        nextQuestionPromise
+      ])
+
+      // 3. Prepare updated feedback list for local state AND API
+      let updatedFeedback = [...feedbackList]
+      if (feedbackData?.feedback) {
+        updatedFeedback[qIndexToUpdate] = feedbackData.feedback
+        setFeedbackList(updatedFeedback)
+      }
+
+      // 4. Move to next question or complete
+      if (questionIndex < 4) {
+        if (nextQuestionData?.question) {
+          const nextQ = nextQuestionData.question
+          setCurrentQuestion(nextQ)
+          setQuestionIndex(prev => prev + 1)
+          setQuestions(prev => [...prev, nextQ])
+          setLoading(false)
+          speakQuestion(nextQ)
         } else {
-          throw new Error("Failed to get next question")
+          // If next question fails, try to move to completion rather than hang
+          throw new Error("Next question could not be generated")
         }
       } else {
-        // Interview complete
+        // Complete Interview: Use the 'updatedFeedback' directly to ensure the last one isn't missed
+        const finalQuestions = [...questions]
+        if (!finalQuestions.includes(currentQuestion)) finalQuestions.push(currentQuestion)
+
         await fetch("/api/interviews/complete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -146,16 +169,17 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
           body: JSON.stringify({
             interviewId: interview._id,
             answers: newAnswers,
-            questions,
-            feedback: feedbackList,
+            questions: finalQuestions,
+            feedback: updatedFeedback,
           }),
         })
 
         router.push(`/results/${interview._id}`)
       }
     } catch (err) {
-      setError("An error occurred. Please try again.")
+      setError("An unexpected error occurred. Please try submitting again.")
       console.error(err)
+      setLoading(false)
     }
   }
 
@@ -256,14 +280,14 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
                   </div>
 
                   <motion.div
-                    className="w-24 h-24 rounded-3xl bg-linear-to-tr from-primary to-blue-600 mx-auto mb-8 flex items-center justify-center relative shadow-2xl shadow-primary/30"
+                    className="w-18 h-18 rounded-3xl bg-linear-to-tr from-primary to-blue-600 mx-auto mb-2 flex items-center justify-center relative shadow-2xl shadow-primary/30"
                     animate={isAiSpeaking ? {
                       scale: [1, 1.05, 1],
                       rotate: [0, 1, -1, 0],
                     } : {}}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
-                    <Mic className="w-10 h-10 text-white" />
+                    <Mic className="w-6 h-6 text-white" />
                     {isAiSpeaking && (
                       <motion.div
                         className="absolute -inset-2.5 border-2 border-primary/30 rounded-[2.5rem]"
@@ -274,14 +298,14 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
                   </motion.div>
 
                   <div className="max-w-xl mx-auto">
-                    <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4 italic">Neural Coach Prompt</h3>
+                    <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4 italic">Question:</h3>
                     <AnimatePresence mode="wait">
                       <motion.p
                         key={currentQuestion}
                         initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.98 }}
-                        className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight bg-linear-to-br from-foreground to-foreground/80 bg-clip-text text-transparent italic"
+                        className="text-xl sm:text-2xl font-bold tracking-tight leading-tight bg-linear-to-br from-foreground to-foreground/80 bg-clip-text text-transparent italic"
                       >
                         "{currentQuestion}"
                       </motion.p>
@@ -308,34 +332,16 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
                 <VoiceInput onTranscript={handleSubmitAnswer} isListening={!isAiSpeaking} disabled={loading} />
               </motion.div>
 
-              {/* Dynamic Feedback Popup */}
-              <AnimatePresence>
-                {feedback && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="relative"
-                  >
-                    <Card className="p-6 bg-primary/5 border-primary/20 backdrop-blur-xl shadow-xl shadow-primary/5">
-                      <div className="flex gap-4 items-start">
-                        <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
-                          <Info className="w-4 h-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-black uppercase tracking-widest text-primary mb-1 italic">Real-time Coaching</p>
-                          <p className="text-sm font-medium leading-relaxed">{feedback}</p>
-                        </div>
-                      </div>
-                    </Card>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* Center popup removed as per user request to move feedback to sidebar */}
             </div>
 
             {/* Sidebar Analytics */}
             <div className="space-y-6">
-              <LiveFeedback answers={answers} currentQuestion={currentQuestion} />
+              <LiveFeedback
+                answers={answers}
+                questions={questions}
+                feedbackList={feedbackList}
+              />
 
               <Card className="p-6 bg-white/5 border-white/10 hidden lg:block">
                 <h4 className="font-bold text-sm mb-4 flex items-center gap-2">
