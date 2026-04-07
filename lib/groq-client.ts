@@ -42,6 +42,12 @@ DO NOT repeat these topics—move on to a different technical area.`
   const resumeContext = resumeText && questionIndex <= 3 
     ? `The candidate provided a resume. Extract their specific experiences and formulate a question related to their past work: \n\nRESUME TEXT:\n${resumeText}` 
     : ""
+  const bilingualInstruction = language === "English"
+    ? `The interview MUST be conducted entirely in English. Ask the question in clear, concise English.`
+    : `The interview question must include BOTH of the following so that users who understand ${language} but may not be able to read it still see English:
+- First line: the question in clear, simple English.
+- Second line: the same question translated into ${language}.
+Do not add any extra commentary or labels like "English:" or "${language}:"—only the two versions of the question on separate lines.`
 
   const prompt = `You are conducting a professional and friendly mock interview for ${levelDescription} ${role} candidates at ${company}.
 ${techStack ? `The candidate's primary tech stack is: ${techStack}.` : ""}
@@ -55,12 +61,14 @@ CONSTRAINTS BASED ON LEVEL:
 - If Mid/Junior: Focus on implementation details, common APIs, practical troubleshooting, and best practices.
 - If Fresher: Focus on theoretical fundamentals, core data structures/logic, and basic conceptual understanding.
 
+LANGUAGE RULES:
+${bilingualInstruction}
+
 GENERAL RULES:
-- The interview MUST be conducted entirely in ${language}. Ask the question in ${language}.
 - Focus heavily on ${techStack || role} and day-to-day practical work.
 - Scales in difficulty: Q1-2 are foundational; Q3-5 are more scenario-based or complex.
 - DO NOT repeat topics covered in the history.
-- Respond with ONLY the question text in ${language}, no conversational filler or quotes.`
+- Respond with ONLY the question text as specified above, no conversational filler or quotes.`
 
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",

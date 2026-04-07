@@ -318,15 +318,24 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
                   <div className="max-w-xl mx-auto">
                     <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4 italic">Question:</h3>
                     <AnimatePresence mode="wait">
-                      <motion.p
+                      <motion.div
                         key={currentQuestion}
                         initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.98 }}
-                        className="text-xl sm:text-2xl font-bold tracking-tight leading-tight bg-linear-to-br from-foreground to-foreground/80 bg-clip-text text-transparent italic"
                       >
-                        "{currentQuestion}"
-                      </motion.p>
+                        {currentQuestion
+                          .split("\n")
+                          .filter((line: string) => line.trim().length > 0)
+                          .map((line: string, index: number) => (
+                            <p
+                              key={index}
+                              className={`text-xl sm:text-2xl font-bold tracking-tight leading-tight bg-linear-to-br from-foreground to-foreground/80 bg-clip-text text-transparent italic ${index > 0 ? "mt-6" : ""}`}
+                            >
+                              "{line}"
+                            </p>
+                          ))}
+                      </motion.div>
                     </AnimatePresence>
                   </div>
                 </Card>
