@@ -20,7 +20,6 @@ export async function generateInterviewQuestion(
   techStack?: string,
   experienceLevel: string = "fresher",
   language: string = "English",
-  resumeText: string | null = null
 ) {
   const groq = getGroqClient()
 
@@ -39,9 +38,6 @@ Candidate's previous answers: ${previousAnswers.join(" | ")}.
 DO NOT repeat these topics—move on to a different technical area.`
     : ""
 
-  const resumeContext = resumeText && questionIndex <= 3 
-    ? `The candidate provided a resume. Extract their specific experiences and formulate a question related to their past work: \n\nRESUME TEXT:\n${resumeText}` 
-    : ""
   const bilingualInstruction = language === "English"
     ? `The interview MUST be conducted entirely in English. Ask the question in clear, concise English.`
     : `The interview question must include BOTH of the following so that users who understand ${language} but may not be able to read it still see English:
@@ -52,7 +48,6 @@ Do not add any extra commentary or labels like "English:" or "${language}:"—on
   const prompt = `You are conducting a professional and friendly mock interview for ${levelDescription} ${role} candidates at ${company}.
 ${techStack ? `The candidate's primary tech stack is: ${techStack}.` : ""}
 ${context}
-${resumeContext}
 
 Generate exactly ONE interview question for Question ${questionIndex} of the session.
 

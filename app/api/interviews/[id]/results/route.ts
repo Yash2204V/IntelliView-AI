@@ -47,9 +47,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const questionScores: number[] = Array.isArray(interview.questionScores) ? interview.questionScores : []
 
+    const startedAt = interview.startedAt ? new Date(interview.startedAt) : null
+    const completedAt = interview.completedAt ? new Date(interview.completedAt) : null
+    const duration = startedAt && completedAt ? completedAt.getTime() - startedAt.getTime() : 0
+
     const results = {
       ...interview,
-      duration: 15 * 60 * 1000, // 15 minutes in milliseconds
+      duration,
       metrics,
       questionScores,
     }

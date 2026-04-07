@@ -33,9 +33,8 @@ export async function POST(req: NextRequest) {
 
     userId = session.userId
 
-    const { role, company, techStack = "Not specified", experienceLevel = "fresher", language = "English", resumeText = null } = await req.json()
+    const { role, company, techStack = "Not specified", experienceLevel = "fresher", language = "English" } = await req.json()
 
-    // Corrected positional arguments call to match updated signature
     const firstQuestion = await generateInterviewQuestion(
       role,
       company,
@@ -45,7 +44,6 @@ export async function POST(req: NextRequest) {
       techStack,
       experienceLevel,
       language,
-      resumeText
     )
 
     const result = await interviews.insertOne({
@@ -55,7 +53,6 @@ export async function POST(req: NextRequest) {
       techStack,
       experienceLevel,
       language,
-      resumeText,
       status: "in_progress",
       questions: [firstQuestion],
       answers: [],

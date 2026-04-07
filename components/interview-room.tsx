@@ -25,7 +25,6 @@ interface InterviewRoomProps {
 export default function InterviewRoom({ interview }: InterviewRoomProps) {
   const router = useRouter()
   const language = interview.language || "English"
-  const resumeText = interview.resumeText || null
   const languageCode = LANGUAGE_CODES[language] || "en-US"
 
   const [currentQuestion, setCurrentQuestion] = useState(interview.questions?.[0] || "");
@@ -64,7 +63,6 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
           questionIndex: 0,
           previousAnswers: [],
           language,
-          resumeText,
         }),
       })
 
@@ -144,7 +142,6 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
             previousQuestions: questions,
             previousAnswers: newAnswers,
             language,
-            resumeText,
           }),
         }).then(res => res.ok ? res.json() : null)
       }

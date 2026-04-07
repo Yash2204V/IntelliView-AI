@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
       previousQuestions = [],
       previousAnswers = [],
       language = "English",
-      resumeText = null,
     } = await req.json()
 
     // Pass everything directly. Index logic should be consistent between FE and BE.
@@ -48,7 +47,6 @@ export async function POST(req: NextRequest) {
       techStack,
       experienceLevel,
       language,
-      resumeText
     )
 
     return NextResponse.json({ question })
