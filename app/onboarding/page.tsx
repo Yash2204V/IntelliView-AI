@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
 import { Navigation } from "@/components/navigation"
 import { Sparkles, Briefcase, Building2, Code2, GraduationCap, ChevronRight, ArrowLeft, Loader2, Cpu, BarChart3, Palette, LineChart, Upload, CheckCircle, Globe } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
+
 
 const ROLES = [
   { id: "software-engineer", name: "Software Engineer", icon: Code2, color: "text-blue-500", bg: "bg-blue-500/10" },
@@ -19,12 +21,19 @@ const ROLES = [
 ]
 
 const COMPANIES = [
-  { id: "google", name: "Google", logo: "G", color: "text-blue-500" },
-  { id: "amazon", name: "Amazon", logo: "A", color: "text-orange-500" },
-  { id: "meta", name: "Meta", logo: "M", color: "text-blue-600" },
-  { id: "apple", name: "Apple", logo: "", color: "text-slate-900 dark:text-white" },
-  { id: "microsoft", name: "Microsoft", logo: "ms", color: "text-blue-400" },
+  { id: "google", name: "Google", logo: "/company-logo/google.svg", color: "" },
+  { id: "amazon", name: "Amazon", logo: "/company-logo/amazon.svg", color: "" },
+  { id: "meta", name: "Meta", logo: "/company-logo/meta.svg", color: "" },
+  { id: "apple", name: "Apple", logo: "/company-logo/apple.svg", color: "" },
+  { id: "microsoft", name: "Microsoft", logo: "/company-logo/microsoft.svg", color: "" },
   { id: "more", name: "Start-up / Other", logo: "+", color: "text-slate-500" },
+]
+
+const EXPERIENCE_LEVELS = [
+  { id: "fresher", name: "Intern / Student", description: "Early career, focused on learning fundamentals and project basics." },
+  { id: "junior", name: "Junior Professional", description: "1-2 years experience. Capable of handling tasks with some guidance." },
+  { id: "mid", name: "Mid-Level Professional", description: "3-5 years experience. Independently manages complex technical features." },
+  { id: "senior", name: "Senior Professional", description: "5+ years experience. Expert-level depth with focus on architecture and leadership." },
 ]
 
 const LANGUAGES = [
@@ -160,12 +169,22 @@ export default function Onboarding() {
                     key={company.id}
                     onClick={() => setSelectedCompany(company.id)}
                     className={`p-6 rounded-2xl border transition-all text-center relative overflow-hidden group ${selectedCompany === company.id
-                        ? 'bg-primary border-primary text-white shadow-xl shadow-primary/20'
-                        : 'bg-white/5 border-white/10 hover:bg-white/10'
+                        ? 'bg-primary/70 border-primary text-white shadow-xl shadow-primary/20'
+                        : 'bg-white text-black border-white/10 hover:bg-white/90'
                       }`}
                   >
-                    <div className={`text-2xl font-black mb-2 ${selectedCompany === company.id ? 'text-white' : company.color}`}>
-                      {company.logo}
+                    <div className="h-8 flex items-center justify-center mb-4">
+                      {company.logo.startsWith("/") ? (
+                        <img 
+                          src={company.logo} 
+                          alt={company.name} 
+                          className={`w-8 h-8 object-contain ${selectedCompany === company.id ? "brightness-0 invert" : ""}`} 
+                        />
+                      ) : (
+                        <div className={`text-3xl font-black ${selectedCompany === company.id ? 'text-white' : company.color}`}>
+                          {company.logo}
+                        </div>
+                      )}
                     </div>
                     <p className="font-bold text-sm tracking-tight">{company.name}</p>
                     {selectedCompany === company.id && (
@@ -197,19 +216,27 @@ export default function Onboarding() {
                     Professional Altitude
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {["fresher", "junior", "mid", "senior"].map((level) => (
-                      <button
-                        key={level}
-                        type="button"
-                        onClick={() => setExperienceLevel(level)}
-                        className={`text-sm px-6 py-4 rounded-xl border-2 font-bold transition-all capitalize ${experienceLevel === level
-                            ? "border-primary bg-primary text-white shadow-lg shadow-primary/20"
-                            : "border-white/5 bg-white/5 hover:border-white/10 text-muted-foreground"
-                          }`}
-                      >
-                        {level === "fresher" ? "Intern" : level}
-                      </button>
-                    ))}
+                    <TooltipProvider>
+                      {EXPERIENCE_LEVELS.map((level) => (
+                        <Tooltip key={level.id}>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={() => setExperienceLevel(level.id)}
+                              className={`text-sm px-4 py-4 rounded-xl border-2 font-bold transition-all capitalize ${experienceLevel === level.id
+                                  ? "border-primary bg-primary text-white shadow-lg shadow-primary/20"
+                                  : "border-white/5 bg-white/5 hover:border-white/10 text-muted-foreground"
+                                }`}
+                            >
+                              {level.id === "fresher" ? "Intern" : level.id}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[150px] text-center p-3 bg-primary text-white font-medium border-primary">
+                            <p>{level.description}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ))}
+                    </TooltipProvider>
                   </div>
                 </div>
 
@@ -260,8 +287,7 @@ export default function Onboarding() {
                     </>
                   ) : (
                     <>
-                      Start Simulation
-                      <Sparkles className="w-5 h-5 group-hover:scale-125 transition-transform" />
+                      Start Interview
                     </>
                   )}
                 </Button>
