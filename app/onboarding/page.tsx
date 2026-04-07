@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
 import { Navigation } from "@/components/navigation"
-import { Sparkles, Briefcase, Building2, Code2, GraduationCap, ChevronRight, ArrowLeft, Loader2, Cpu, BarChart3, Palette, LineChart } from "lucide-react"
+import { Sparkles, Briefcase, Building2, Code2, GraduationCap, ChevronRight, ArrowLeft, Loader2, Cpu, BarChart3, Palette, LineChart, Upload, CheckCircle, Globe } from "lucide-react"
 
 const ROLES = [
   { id: "software-engineer", name: "Software Engineer", icon: Code2, color: "text-blue-500", bg: "bg-blue-500/10" },
@@ -27,6 +27,10 @@ const COMPANIES = [
   { id: "more", name: "Start-up / Other", logo: "+", color: "text-slate-500" },
 ]
 
+const LANGUAGES = [
+  "English", "Hindi", "Spanish", "French", "German"
+]
+
 export default function Onboarding() {
   const router = useRouter()
   const [step, setStep] = useState(0)
@@ -36,6 +40,43 @@ export default function Onboarding() {
   const [experienceLevel, setExperienceLevel] = useState("fresher")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [selectedLanguage, setSelectedLanguage] = useState("English")
+  const [resumeText, setResumeText] = useState("")
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadSuccess, setUploadSuccess] = useState(false)
+
+  const handleUploadResume = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.name.endsWith(".pdf")) {
+      setError("Please upload a PDF file.")
+      return
+    }
+
+    setIsUploading(true)
+    setError("")
+    
+    const formData = new FormData()
+    formData.append("file", file)
+
+    try {
+      const res = await fetch("/api/upload-resume", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!res.ok) throw new Error("Upload failed")
+      
+      const { text } = await res.json()
+      setResumeText(text)
+      setUploadSuccess(true)
+    } catch (err) {
+      setError("Failed to process resume. Please try again.")
+    } finally {
+      setIsUploading(false)
+    }
+  }
 
   const handleStart = async () => {
     if (!selectedRole || !selectedCompany) return
@@ -53,6 +94,8 @@ export default function Onboarding() {
           company: selectedCompany,
           techStack: techStack || "Not specified",
           experienceLevel: experienceLevel || "fresher",
+          language: selectedLanguage,
+          resumeText: resumeText || null,
         }),
       })
 
@@ -204,6 +247,55 @@ export default function Onboarding() {
                         {level === "fresher" ? "Intern" : level}
                       </button>
                     ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 border-t border-white/5 pt-8">
+                  <div>
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4 block italic flex items-center gap-2">
+                      <Globe className="w-3 h-3" />
+                      Interview Language
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={selectedLanguage}
+                        onChange={(e) => setSelectedLanguage(e.target.value)}
+                        className="w-full h-14 bg-white/5 border border-white/10 focus:border-primary/50 text-lg font-medium px-6 rounded-xl appearance-none outline-none"
+                      >
+                        {LANGUAGES.map((lang) => (
+                          <option key={lang} value={lang} className="bg-slate-900">{lang}</option>
+                        ))}
+                      </select>
+                      <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none rotate-90" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4 block italic flex items-center gap-2">
+                      <Upload className="w-3 h-3" />
+                      Upload Resume (PDF) - Optional
+                    </label>
+                    <div className="relative h-14 bg-white/5 border border-white/10 hover:border-primary/50 transition-colors rounded-xl flex items-center px-6 overflow-hidden">
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        onChange={handleUploadResume}
+                        className="absolute inset-0 opacity-0 cursor-pointer p-0"
+                        disabled={isUploading}
+                      />
+                      <div className="flex items-center gap-3 pointer-events-none w-full">
+                        {isUploading ? (
+                          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        ) : uploadSuccess ? (
+                          <CheckCircle className="w-5 h-5 text-emerald-500" />
+                        ) : (
+                          <Upload className="w-5 h-5 text-muted-foreground" />
+                        )}
+                        <span className="font-medium text-muted-foreground truncate">
+                          {isUploading ? "Extracting insights..." : uploadSuccess ? "Resume analyzed successfully!" : "Drop PDF to personalize..."}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </Card>

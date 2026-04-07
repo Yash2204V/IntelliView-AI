@@ -11,9 +11,18 @@ interface VoiceInputProps {
   onTranscript: (text: string) => void
   isListening?: boolean
   disabled?: boolean
+  language?: string
 }
 
-export function VoiceInput({ onTranscript, isListening = false, disabled = false }: VoiceInputProps) {
+const LANGUAGE_CODES: Record<string, string> = {
+  English: "en-US",
+  Hindi: "hi-IN",
+  Spanish: "es-ES",
+  French: "fr-FR",
+  German: "de-DE",
+}
+
+export function VoiceInput({ onTranscript, isListening = false, disabled = false, language = "English" }: VoiceInputProps) {
   const recognitionRef = useRef<any>(null)
   const [isRecording, setIsRecording] = useState(false)
   const [transcript, setTranscript] = useState("")
@@ -58,7 +67,7 @@ export function VoiceInput({ onTranscript, isListening = false, disabled = false
       const recognition = new SpeechRecognition()
       recognition.continuous = true
       recognition.interimResults = true
-      recognition.lang = "en-US"
+      recognition.lang = LANGUAGE_CODES[language] || "en-US"
 
       recognition.onresult = (event: any) => {
         let final = ""

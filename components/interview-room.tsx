@@ -10,12 +10,24 @@ import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { Sparkles, Mic, X, ChevronRight, Loader2, Info } from "lucide-react"
 
+const LANGUAGE_CODES: Record<string, string> = {
+  English: "en-US",
+  Hindi: "hi-IN",
+  Spanish: "es-ES",
+  French: "fr-FR",
+  German: "de-DE",
+}
+
 interface InterviewRoomProps {
   interview: any
 }
 
 export default function InterviewRoom({ interview }: InterviewRoomProps) {
   const router = useRouter()
+  const language = interview.language || "English"
+  const resumeText = interview.resumeText || null
+  const languageCode = LANGUAGE_CODES[language] || "en-US"
+
   const [currentQuestion, setCurrentQuestion] = useState(interview.questions?.[0] || "");
   const [questionIndex, setQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<string[]>(interview.answers || [])
@@ -51,6 +63,8 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
           experienceLevel: interview.experienceLevel,
           questionIndex: 0,
           previousAnswers: [],
+          language,
+          resumeText,
         }),
       })
 
@@ -76,6 +90,7 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
     const utterance = new SpeechSynthesisUtterance(question)
     utterance.rate = 0.95
     utterance.pitch = 1
+    utterance.lang = languageCode
 
     utterance.onend = () => {
       setIsAiSpeaking(false)
@@ -108,6 +123,7 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
           role: interview.role,
           techStack: interview.techStack,
           experienceLevel: interview.experienceLevel,
+          language,
         }),
       }).then(res => res.ok ? res.json() : null)
 
@@ -127,6 +143,8 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
             questionIndex: questionIndex + 1,
             previousQuestions: questions,
             previousAnswers: newAnswers,
+            language,
+            resumeText,
           }),
         }).then(res => res.ok ? res.json() : null)
       }
@@ -329,7 +347,7 @@ export default function InterviewRoom({ interview }: InterviewRoomProps) {
 
                 <WaveformVisualizer isActive={!isAiSpeaking} />
 
-                <VoiceInput onTranscript={handleSubmitAnswer} isListening={!isAiSpeaking} disabled={loading} />
+                <VoiceInput onTranscript={handleSubmitAnswer} isListening={!isAiSpeaking} disabled={loading} language={language} />
               </motion.div>
 
               {/* Center popup removed as per user request to move feedback to sidebar */}

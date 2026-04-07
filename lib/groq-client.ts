@@ -19,6 +19,8 @@ export async function generateInterviewQuestion(
   previousAnswers: string[] = [],
   techStack?: string,
   experienceLevel: string = "fresher",
+  language: string = "English",
+  resumeText: string | null = null
 ) {
   const groq = getGroqClient()
 
@@ -37,9 +39,14 @@ Candidate's previous answers: ${previousAnswers.join(" | ")}.
 DO NOT repeat these topics—move on to a different technical area.`
     : ""
 
+  const resumeContext = resumeText && questionIndex <= 3 
+    ? `The candidate provided a resume. Extract their specific experiences and formulate a question related to their past work: \n\nRESUME TEXT:\n${resumeText}` 
+    : ""
+
   const prompt = `You are conducting a professional and friendly mock interview for ${levelDescription} ${role} candidates at ${company}.
 ${techStack ? `The candidate's primary tech stack is: ${techStack}.` : ""}
 ${context}
+${resumeContext}
 
 Generate exactly ONE interview question for Question ${questionIndex} of the session.
 
@@ -49,10 +56,11 @@ CONSTRAINTS BASED ON LEVEL:
 - If Fresher: Focus on theoretical fundamentals, core data structures/logic, and basic conceptual understanding.
 
 GENERAL RULES:
+- The interview MUST be conducted entirely in ${language}. Ask the question in ${language}.
 - Focus heavily on ${techStack || role} and day-to-day practical work.
 - Scales in difficulty: Q1-2 are foundational; Q3-5 are more scenario-based or complex.
 - DO NOT repeat topics covered in the history.
-- Respond with ONLY the question text, no conversational filler or quotes.`
+- Respond with ONLY the question text in ${language}, no conversational filler or quotes.`
 
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
@@ -76,6 +84,7 @@ export async function generateFeedback(
   role: string,
   techStack?: string,
   experienceLevel: string = "fresher",
+  language: string = "English"
 ) {
   const groq = getGroqClient()
 
@@ -92,8 +101,9 @@ Provide refined, professional coaching feedback (EXACTLY 2 concise sentences) on
 1. Technical Precision: Identify one specific technical strength or a missed key concept.
 2. Tactical Improvement: Give one high-impact, actionable tip for the next response.
 
+The feedback must be in ${language}.
 The feedback must be sophisticated yet direct. Avoid generic praise like "Good job."
-Example: "Excellent mention of virtual DOM reconciliation. Next, try to articulate how 'key' props optimize this process specifically."`
+Example (if English): "Excellent mention of virtual DOM reconciliation. Next, try to articulate how 'key' props optimize this process specifically."`
 
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",

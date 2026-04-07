@@ -25,9 +25,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const { question, answer, role, techStack, experienceLevel } = await req.json()
+    const { question, answer, role, techStack, experienceLevel, language = "English" } = await req.json()
 
-    const feedback = await generateFeedback(question, answer, role, techStack, experienceLevel)
+    const feedback = await generateFeedback(question, answer, role, techStack, experienceLevel, language)
 
     return NextResponse.json({ feedback })
   } catch (error) {
